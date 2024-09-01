@@ -18,8 +18,10 @@
 
 *수업 일정은 변경될 수 있습니다. 변경될 시 공지할 예정입니다.*
 
-##Installation
+## Installation
 virtual box : https://www.virtualbox.org/wiki/Downloads
+
+
 CentOS : https://www.centos.org/download/
 
 ## 연락처
