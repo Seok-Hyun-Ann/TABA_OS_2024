@@ -24,6 +24,9 @@ Virtual Box : https://www.virtualbox.org/wiki/Downloads
 
 CentOS : https://www.centos.org/download/
 
+
+Putty : https://www.putty.org/
+
 ## 연락처
 - 정지헌 : wlgjsjames7224@dankook.ac.kr
 - 안석현 : seokhyun@dankook.ac.kr
