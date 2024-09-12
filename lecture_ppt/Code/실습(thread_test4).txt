@@ -1,0 +1,27 @@
+#include <stdio.h>
+#include <unistd.h>  // sleep 함수 사용을 위해 해당 라이브러리 사용
+
+int main() {
+    char input[100];  // 사용자가 입력할 문자열을 저장할 배열
+
+    // 사용자 입력 받기
+    printf("Enter a string: ");  // 사용자에게 문자열을 입력하라고 안내
+    fgets(input, sizeof(input), stdin);  // 사용자 입력을 받아 input 배열에 저장
+
+    // 사용자 입력 출력
+    printf("You entered: %s", input);  // 입력받은 문자열을 출력
+
+    // 1부터 10까지 1초 간격으로 출력
+    for (int i = 1; i <= 10; i++) {
+        printf("%d\n", i);  // 현재 숫자를 출력
+        sleep(1);  // 1초 동안 대기
+    }
+
+    return 0;  // 프로그램 정상 종료
+}
+
+/* 프로그램 실행 순서 */
+사용자로부터 문자열 입력을 받습니다.
+입력된 문자열을 출력합니다.
+1부터 10까지의 숫자를 출력하며, 각 숫자 사이에 1초의 대기 시간을 둡니다.
+프로그램이 종료됩니다.

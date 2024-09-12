@@ -1,0 +1,12 @@
+#!/bin/bash
+
+echo "first var : $1"
+echo "second var : $2"
+
+echo $1 $2
+
+num1=$3
+num2=$4
+
+result=$(($num1+$num2))
+echo "result=$result"

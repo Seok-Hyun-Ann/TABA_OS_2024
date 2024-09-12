@@ -1,0 +1,45 @@
+#include <pthread.h>
+#include <stdio.h>
+#include <unistd.h>
+
+// 숫자를 1초 간격으로 출력하는 스레드 함수
+void* print_numbers(void* arg) {
+    for (int i = 1; i <= 10; i++) {
+        printf("%d\n", i);
+        sleep(1);  // 1초 동안 대기
+    }
+    return NULL;
+}
+
+// 사용자 입력을 받는 스레드 함수
+void* get_input(void* arg) { //스레드 함수로 전달되는 인자
+    char input[100];  // 사용자 입력을 저장할 배열
+
+    printf("Enter a string: ");
+    fgets(input, sizeof(input), stdin);  // 사용자로부터 입력을 받음
+    printf("You entered: %s", input);  // 입력받은 문자열을 출력
+
+    return NULL;
+}
+
+int main() {
+    pthread_t thread1, thread2;  // 두 개의 스레드 식별자
+
+    // 숫자 출력 스레드 생성
+    pthread_create(&thread1, NULL, print_numbers, NULL);
+
+    // 사용자 입력 스레드 생성
+    pthread_create(&thread2, NULL, get_input, NULL);
+
+    // 두 스레드가 종료될 때까지 대기
+    pthread_join(thread1, NULL);
+    pthread_join(thread2, NULL);
+
+    return 0;
+}
+
+/* 프로그램 실행 순서 */
+숫자 출력 스레드가 1부터 10까지의 숫자를 1초 간격으로 출력합니다.
+사용자 입력 스레드가 사용자로부터 문자열을 입력받고, 입력된 문자열을 출력합니다.
+두 스레드는 동시에 실행되기 때문에, 숫자 출력과 사용자 입력이 동시에 처리됩니다.
+두 스레드가 모두 종료되면 프로그램이 종료됩니다.

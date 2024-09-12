@@ -1,0 +1,18 @@
+#include <stdio.h>
+
+
+// argc : 명령 인자 개수
+// argv : 전달된 인자들이 문자열 배열로 저장
+// envp : 환경 변수를 저장하는 배열
+int main(int argc, char *argv[], char *envp[])
+{
+    int i;
+
+    // argv 배열을 순회하며, 프로그램 실행 시 전달된 인자를 출력
+    for (i = 0; argv[i] != NULL; i++)  // argv 배열의 끝은 NULL을 만나면 실행 종료
+        printf("arg %d = %s\n", i, argv[i]);  // 각 인자의 순서와 값을 출력
+
+    // envp 배열을 순회하며, 환경 변수를 출력
+    for (i = 0; envp[i] != NULL; i++)  // envp 배열의 끝은 NULL을 만나면 실행 종료
+        printf("envp %d = %s\n", i, envp[i]);  // 각 환경 변수의 순서와 값을 출력
+}

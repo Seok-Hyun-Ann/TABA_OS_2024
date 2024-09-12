@@ -1,0 +1,37 @@
+#include <unistd.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+int main(int argc, char *argv[])
+{
+    pid_t fork_return, d_pid;
+    int exit_status = -1;  // 자식 프로세스의 종료 상태를 저장할 변수
+
+    if ((fork_return = fork()) == -1) {
+        // fork()가 실패한 경우 에러 처리
+    } else if (fork_return == 0) {  /* child */
+        // 자식 프로세스에서 execl()을 호출하여 새로운 프로그램을 실행
+        // "./hello" 프로그램을 실행함 (첫 번째 인자는 실행 파일 경로, 두 번째 인자는 그 이름, 끝에 NULL이 필요함)
+       execl("./hello", "./hello", (char *)0);
+
+        // 만약 execl()이 실패할 경우, 실행이 여기로 넘어옴
+        // perror()로 에러 메시지 출력
+        perror("exec error");
+
+        // execl()이 실패한 경우, 이 메시지를 출력 (정상적으로 실행되었다면 실행되지 않음)
+        printf("Child.. I'm here\n");
+
+        // 프로그램을 에러 코드 1로 종료
+        exit(1);
+    } else {  /* parent */
+        // 부모 프로세스는 자식이 종료될 때까지 기다림
+        // wait()는 자식 프로세스가 종료될 때까지 대기하며, 종료된 자식의 PID를 반환하고, 종료 상태를 exit_status에 저장
+        d_pid = wait(&exit_status);
+
+        // 자식 프로세스가 종료되면 부모는 아래 메시지를 출력
+        printf("Parent .. I'm here\n");
+
+        // 자식 프로세스의 PID와 종료 상태를 출력
+        printf("exit status of process %d is %d\n", d_pid, exit_status);
+    }
+}

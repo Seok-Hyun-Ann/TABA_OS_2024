@@ -1,0 +1,17 @@
+#!/bin/bash
+
+if [ $# -ne 2 ]; then
+        echo "instruction: $0 <num1> <num2>"
+        exit 1
+fi
+
+v1=$1
+v2=$2
+
+if [ $v1 -eq $v2 ]; then
+        echo "v1 = v2"
+elif [ $v1 -gt $v2 ]; then
+        echo "v1 > v2"
+else
+        echo "v1 < v2"
+fi

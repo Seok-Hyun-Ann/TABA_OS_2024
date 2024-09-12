@@ -1,0 +1,43 @@
+#include <pthread.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+void* thread_function(void* arg) {
+    printf("Hello from the thread!\n");
+    return NULL;  // 스레드 함수는 반드시 void*를 반환해야 하며, 여기서는 NULL을 반환
+}
+
+int main() {
+    pthread_t thread;  // 스레드 식별자 선언
+    int result;  // pthread 함수 호출의 반환 값을 저장할 변수
+
+    // pthread_create()를 호출하면 새로운 스레드가 생성됨
+    // 첫 번째 인자: 스레드 식별자를 저장할 변수
+    // 두 번째 인자: 스레드 속성(여기서는 기본 속성을 사용하므로 NULL)
+    // 세 번째 인자: 스레드에서 실행할 함수 (thread_function)
+    // 네 번째 인자: 스레드 함수에 전달할 인자 (여기서는 NULL)
+    result = pthread_create(&thread, NULL, thread_function, NULL);
+    
+    // 스레드 생성에 실패하면 에러 메시지를 출력하고 프로그램을 종료
+    if (result != 0) {
+        fprintf(stderr, "Error creating thread\n");
+        return 1;  // 프로그램을 에러 코드 1로 종료
+    }
+
+    // 메인 스레드가 새로 생성된 스레드가 종료될 때까지 기다림
+    // pthread_join()은 스레드가 종료될 때까지 메인 스레드를 블로킹함
+    // 첫 번째 인자: 대기할 스레드의 식별자
+    // 두 번째 인자: 스레드가 반환한 값을 저장할 포인터 (여기서는 NULL)
+    result = pthread_join(thread, NULL);
+
+    // 스레드 대기 중 에러가 발생하면 에러 메시지를 출력하고 프로그램을 종료
+    if (result != 0) {
+        fprintf(stderr, "Error joining thread\n");
+        return 2;
+    }
+
+    // 스레드가 정상적으로 종료된 후 실행되는 코드
+    printf("Thread has finished executing.\n");
+
+    return 0;
+}

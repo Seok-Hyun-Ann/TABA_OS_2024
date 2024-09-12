@@ -1,0 +1,64 @@
+#include <pthread.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <sys/time.h>  // 시간을 측정하기 위한 헤더
+
+pthread_mutex_t mutex;  // 뮤텍스 객체 선언
+int counter = 0;        // 공유 자원인 counter 변수
+
+// 임계 영역 (critical section)
+void *critical_section(void *arg) {
+    for (int i = 0; i < 1000; i++) {  // 1000번 반복
+        pthread_mutex_lock(&mutex);   // 뮤텍스 잠금
+        counter++;                    // 공유 자원인 counter에 1을 더함
+        pthread_mutex_unlock(&mutex); // 뮤텍스 해제
+    }
+    return NULL;
+}
+
+int main() {
+    pthread_t threads[2];  // 두 개의 스레드를 저장할 배열
+    struct timeval start, end;  // 시간 측정을 위한 구조체
+
+    // Mutex 초기화
+    pthread_mutex_init(&mutex, NULL);
+
+    // 시간 측정 시작
+    gettimeofday(&start, NULL);
+
+    // 두 개의 스레드 생성
+    for (int i = 0; i < 2; i++) {
+        pthread_create(&threads[i], NULL, critical_section, NULL);
+    }
+
+    // 스레드가 모두 종료될 때까지 대기
+    for (int i = 0; i < 2; i++) {
+        pthread_join(threads[i], NULL);
+    }
+
+    // 시간 측정 종료
+    gettimeofday(&end, NULL);
+
+    // 실행 시간 계산 (마이크로초 단위)
+    long seconds = (end.tv_sec - start.tv_sec);  // 초 단위 차이 계산
+    long micros = ((seconds * 1000000) + end.tv_usec) - (start.tv_usec);  // 마이크로초로 변환
+
+    // 결과 출력
+    printf("Mutex lock completed in %ld microseconds\n", micros);  // 실행 시간 출력
+    printf("Final counter value: %d\n", counter);  // 최종 counter 값 출력
+
+    // Mutex 제거
+    pthread_mutex_destroy(&mutex);
+
+    return 0;
+}
+
+/* 프로그램 실행 순서 */
+뮤텍스 초기화: 뮤텍스를 초기화하여 스레드 간 공유 자원을 보호할 준비
+시간 측정 시작: 프로그램 시작 시간을 기록
+스레드 생성: 두 개의 스레드를 생성하여 critical_section()을 실행
+임계 구역 보호: 각 스레드가 counter 값을 수정하기 전에 뮤텍스를 잠그고, 수정이 끝나면 뮤텍스를 해제
+스레드 종료 대기: 메인 스레드는 두 스레드가 종료될 때까지 대기
+시간 측정 종료: 프로그램 종료 시간이 기록되고, 실행 시간이 계산
+결과 출력: 최종 counter 값(2000)과 실행 시간이 출력

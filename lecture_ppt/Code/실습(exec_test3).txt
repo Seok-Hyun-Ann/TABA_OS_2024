@@ -1,0 +1,29 @@
+#include <sys/types.h>
+#include <unistd.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <wait.h>
+
+int main(int argc, char *argv[])
+{
+    pid_t fork_return, d_pid;  // fork()의 반환값과 자식 프로세스의 PID를 저장할 변수
+    int exit_status;  // 자식 프로세스의 종료 상태를 저장할 변수
+    char *const myenvp[] = {"sys programming", "is", "fun", (char *)0};  // 자식 프로세스에 전달할 환경 변수 목록
+
+    // fork() 호출하여 자식 프로세스 생성
+    if ((fork_return = fork()) == -1) {
+        // fork 실패 시 에러 (구현 x)
+    } else if (fork_return == 0) {  /* child */
+        // 자식 프로세스: execle() 호출하여 새로운 프로그램 실행
+        // "./exec_test2" 프로그램 실행, 명령줄 인자로 "Hi", "DKU"를 전달하고, myenvp 배열을 환경 변수로 전달
+        execle("./exec_test2", "./exec_test2", "Hi", "DKU", (char *)0, myenvp);
+        // 만약 execle()이 실패하면 이 printf()가 실행됨
+        printf("Child... I'm here\n");
+        exit(1);  // execle() 실패 시 자식 프로세스가 1로 종료
+    } else {  /* parent */
+        // 부모 프로세스: 자식 프로세스가 종료될 때까지 기다림
+        d_pid = wait(&exit_status);
+        // 자식 프로세스의 PID와 종료 상태 출력
+        printf("exit pid = %d with status = %d\n", d_pid, WEXITSTATUS(exit_status));
+    }
+}

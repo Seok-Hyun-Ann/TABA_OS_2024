@@ -1,0 +1,40 @@
+#include <unistd.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+int glob = 6; 
+char buf[] = "a write to stdout\n";  // 표준 출력으로 쓸 문자열 버퍼
+
+int main(void)
+{
+    int var = 88;
+    pid_t fork_return;
+
+    // 표준 출력으로 문자열을 출력
+    // write()는 버퍼를 표준 출력으로 직접 출력 (버퍼가 비워지기 전에 출력함)
+    if (write(STDOUT_FILENO, buf, sizeof(buf)) != sizeof(buf)) {
+        perror("write error"); 
+        exit(1);  // 프로그램을 에러 코드 1로 종료
+    }
+
+    // 표준 출력을 사용하여 출력 (버퍼에 저장되며 자동으로 flush되지 않음)
+    printf("before fork\n");  // 출력은 버퍼링됨. fork() 이후 두 프로세스에서 한 번씩 출력될 수 있음.
+
+    // fork() 호출하여 프로세스를 복제
+    if ((fork_return = fork()) < 0) {
+        // fork()가 실패하면 에러 메시지를 출력하고 프로그램을 종료
+        perror("fork error");
+        exit(1);
+    } else if (fork_return == 0) {  // fork_return == 0인 경우 자식 프로세스
+        glob++;  // 자식 프로세스에서 전역 변수 'glob'를 1 증가
+        var++;   // 자식 프로세스에서 지역 변수 'var'를 1 증가
+    } else {  // fork_return > 0인 경우 부모 프로세스
+        sleep(2);  // 부모 프로세스가 2초간 대기
+    }
+
+    // 부모와 자식 프로세스가 각각 출력 (각 프로세스의 PID와 변수 값 출력)
+    printf("pid = %d, glob = %d, var = %d\n", getpid(), glob, var);
+
+    // 프로그램 정상 종료
+    exit(0);
+}

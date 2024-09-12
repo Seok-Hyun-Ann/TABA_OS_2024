@@ -1,0 +1,89 @@
+#include <pthread.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <sys/time.h>  // 시간을 측정하기 위한 헤더
+
+// 스핀락 구조체
+typedef struct __lock_t {
+    int flag;
+} lock_t;
+
+// TestAndSet 함수: old_ptr이 가리키는 값을 new로 설정하고, 이전 값을 반환
+int TestAndSet(int *old_ptr, int new) {
+    int old = *old_ptr;
+    *old_ptr = new;
+    return old;
+}
+
+// 스핀락 초기화 함수: flag를 0으로 설정
+void init(lock_t *lock) {
+    lock->flag = 0;
+}
+
+// 스핀락 잠금 함수: flag가 0일 때까지 기다림 (spin)
+void lock(lock_t *lock) {
+    while (TestAndSet(&lock->flag, 1) == 1)
+       ; // Spin
+}
+
+// 스핀락 해제 함수: flag를 0으로 설정
+void unlock(lock_t *lock) {
+    lock->flag = 0;
+}
+
+int counter = 0;  // 공유 자원인 counter 변수
+lock_t spinlock;  // 스핀락 변수
+
+// 임계 영역 (critical section)
+void *critical_section(void *arg) {
+    for (int i = 0; i < 1000; i++) {  // 1000번 반복
+        lock(&spinlock);  // 스핀락 잠금
+        counter++;        // 공유 자원인 counter에 1을 더함
+        unlock(&spinlock);  // 스핀락 해제
+    }
+    return NULL;
+}
+
+int main() {
+    pthread_t threads[2];  // 두 개의 스레드를 저장할 변수
+    struct timeval start, end;  // 시간 측정을 위한 구조체
+
+    // 스핀락 초기화
+    init(&spinlock);
+
+    // 시간 측정 시작
+    gettimeofday(&start, NULL);
+
+    // 두 개의 스레드 생성
+    for (int i = 0; i < 2; i++) {
+        pthread_create(&threads[i], NULL, critical_section, NULL);
+    }
+
+    // 스레드 종료 대기
+    for (int i = 0; i < 2; i++) {
+        pthread_join(threads[i], NULL);
+    }
+
+    // 시간 측정 종료
+    gettimeofday(&end, NULL);
+
+    // 실행 시간 계산 (마이크로초 단위)
+    long seconds = (end.tv_sec - start.tv_sec);
+    long micros = ((seconds * 1000000) + end.tv_usec) - (start.tv_usec);
+
+    // 결과 출력
+    printf("Spin lock completed in %ld microseconds\n", micros);  // 실행 시간 출력
+    printf("Final counter value: %d\n", counter);  // 최종 counter 값 출력
+
+    return 0;
+}
+
+/* 프로그램 실행 순서 */
+스핀락 초기화: spinlock의 flag가 0으로 초기화됩니다.
+시간 측정 시작: 프로그램 시작 시간이 기록됩니다.
+스레드 생성: 두 개의 스레드가 생성되어 critical_section()을 실행합니다.
+임계 구역 보호: 각 스레드는 counter 값을 수정하기 전에 lock()을 호출하여 스핀락을 잠그고, 수정이 끝난 후 unlock()을 호출하여 잠금을 해제합니다.
+스레드 종료 대기: 두 스레드가 모두 종료될 때까지 메인 스레드는 대기합니다.
+시간 측정 종료: 프로그램 종료 시간이 기록되고, 실행 시간이 계산됩니다.
+결과 출력: 최종 counter 값(2000)과 실행 시간이 출력됩니다.

@@ -1,0 +1,54 @@
+#include <stdio.h>
+#include <pthread.h>
+
+// 공유 자원인 counter 변수
+static volatile int counter = 0;
+
+/**
+ * mythread()
+ *
+ * 스레드 함수로, counter 변수에 1을 10,000,000번 더하는 작업을 수행
+ * 의도적으로 경쟁 상태 문제를 보여주는 역할을 함
+ */
+void *mythread(void *arg) {
+    printf("%s: begin\n", (char *) arg);  // 스레드 시작 시 메시지 출력
+    int i;
+    for (i = 0; i < 1e7; i++) {  // 10,000,000번 반복
+        counter = counter + 1;  // 공유 변수 counter에 1을 더함
+    }
+    printf("%s: done\n", (char *) arg);  // 스레드 완료 시 메시지 출력
+    return NULL;
+}
+
+int main(int argc, char *argv[]) {
+    pthread_t p1, p2;  // 두 개의 스레드를 위한 변수
+    printf("main: begin (counter = %d)\n", counter);  // 프로그램 시작 시 counter 값 출력
+
+    // 스레드 생성
+    pthread_create(&p1, NULL, mythread, "A");  // 첫 번째 스레드 생성
+    pthread_create(&p2, NULL, mythread, "B");  // 두 번째 스레드 생성
+
+    // 스레드가 종료될 때까지 대기
+    pthread_join(p1, NULL);  // 첫 번째 스레드가 끝날 때까지 기다림
+    pthread_join(p2, NULL);  // 두 번째 스레드가 끝날 때까지 기다림
+
+    printf("main: done with both (counter = %d)\n", counter);  // 두 스레드가 종료된 후 counter 값 출력
+    return 0;
+}
+
+
+/* 경쟁 상태 */
+두 개의 스레드가 동시에 counter에 접근하고 수정하는 과정에서 경쟁 상태가 발생할 수 있습니다.
+경쟁 상태는, 두 개의 스레드가 같은 counter 값을 읽고 거의 동시에 그 값을 수정하려고 할 때 발생할 수 있습니다. 그 결과, counter 값이 제대로 증가하지 않을 수 있습니다.
+각 스레드가 10,000,000번 counter에 1을 더하려고 하지만, 경쟁 상태가 발생하면 그 값은 예상보다 적어질 수 있습니다.
+
+/* 실행 순서 */
+메인 스레드가 시작되고 counter는 0으로 초기화됨.
+스레드 A 생성, "A: begin" 출력, counter에 1씩 더하기 시작.
+스레드 B 생성, "B: begin" 출력, counter에 1씩 더하기 시작.
+스레드 A와 B가 동시에 counter에 접근, 경쟁 상태 발생 가능.
+스레드 A 완료 후 "A: done" 출력.
+스레드 B 완료 후 "B: done" 출력.
+메인 스레드는 두 스레드가 종료될 때까지 기다림.
+최종 counter 값 출력.
+프로그램 종료.

@@ -1,0 +1,54 @@
+#include <pthread.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+
+#define NUM_THREADS 4  // 생성할 스레드의 개수
+
+
+void* thread_function(void* arg) {
+    pthread_t thread_id = pthread_self();  // 현재 스레드 ID 가져오기
+    printf("Thread %lu is running before exec\n", thread_id);  // 스레드 실행 전 출력
+
+    sleep(1);
+
+    // exec 호출 전에 현재 스레드와 다른 스레드가 모두 종료됨
+    // exec 호출 후에는 새로운 프로그램이 단일 스레드로 실행됨
+    execlp("date", "date", NULL);  // 'date' 명령어를 실행하여 현재 날짜와 시간을 출력
+    perror("execlp failed");  // execlp가 실패하면 에러 메시지 출력
+
+    pthread_exit(NULL); 
+}
+
+int main() {
+    pthread_t threads[NUM_THREADS];  // 스레드를 저장할 배열
+
+    // 스레드 생성
+    for (int i = 0; i < NUM_THREADS; i++) {
+        if (pthread_create(&threads[i], NULL, thread_function, NULL) != 0) {
+            perror("Failed to create thread");  // 스레드 생성 실패 시 에러 메시지 출력
+            exit(1);
+        }
+    }
+
+    // 모든 스레드가 종료될 때까지 대기
+    for (int i = 0; i < NUM_THREADS; i++) {
+        pthread_join(threads[i], NULL);  // 각 스레드가 끝날 때까지 기다림
+    }
+
+    // exec 호출 후, 모든 스레드는 종료되고 새로운 프로그램이 실행됨
+    // 이 위치의 코드는 이론적으로 도달하지 않음
+    printf("This line will not be reached if exec() is successful\n");
+
+    return 0;
+}
+
+/* 프로그램 실행 순서 */
+4개의 스레드가 생성되고, 각 스레드는 1초 동안 대기하면서 자신의 ID를 출력합니다.
+각 스레드는 1초 후 execlp()를 호출하여 date 명령어를 실행하려 시도합니다.
+execlp()가 성공하면 스레드는 새로운 프로그램(date)으로 대체되고, 새로운 프로그램이 실행됩니다.
+모든 스레드가 exec()를 호출한 후 종료됩니다.
+메인 스레드는 각 스레드가 종료될 때까지 기다리지만, exec()가 성공하면 이 이후의 코드는 실행되지 않습니다.
+
